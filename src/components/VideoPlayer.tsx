@@ -13,6 +13,16 @@ export default function VideoPlayer({ source, poster, className, onError, room }
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const [socket, setSocket] = useState<Socket | null>(null)
   const remoteRef = useRef(false) // guard to prevent event echo-loops
+  const remoteTimer = useRef<number | null>(null)
+
+  const beginRemoteGuard = (ms = 300) => {
+    remoteRef.current = true
+    if (remoteTimer.current) window.clearTimeout(remoteTimer.current)
+    remoteTimer.current = window.setTimeout(() => {
+      remoteRef.current = false
+      remoteTimer.current = null
+    }, ms)
+  }
 
   // Force <video> to reload when source changes by using a key
   const key = useMemo(() => (source ? `vid:${source}` : 'vid:none'), [source])
@@ -52,35 +62,32 @@ export default function VideoPlayer({ source, poster, className, onError, room }
     }
 
     const onPlay = async ({ time }: { time: number }) => {
-      remoteRef.current = true
+      beginRemoteGuard()
       try {
         if (Math.abs(el.currentTime - time) > 0.3) el.currentTime = time
         await el.play().catch(() => {
           onError?.('Autoplay prevented. Click the video or unmute, then press play again.')
         })
       } finally {
-        setTimeout(() => { remoteRef.current = false }, 0)
+        // keep guard active briefly to avoid ping-pong
       }
     }
     const onPause = ({ time }: { time: number }) => {
-      remoteRef.current = true
+      beginRemoteGuard()
       if (Math.abs(el.currentTime - time) > 0.3) el.currentTime = time
       el.pause()
-      setTimeout(() => { remoteRef.current = false }, 0)
     }
     const onSeek = ({ time }: { time: number }) => {
-      remoteRef.current = true
+      beginRemoteGuard()
       el.currentTime = time
-      setTimeout(() => { remoteRef.current = false }, 0)
     }
     const onRate = ({ rate }: { rate: number }) => {
-      remoteRef.current = true
+      beginRemoteGuard()
       el.playbackRate = rate
-      setTimeout(() => { remoteRef.current = false }, 0)
     }
     const onState = async ({ src, time, playing, rate }: { src?: string | null; time: number; playing: boolean; rate: number }) => {
       // We do not auto-change the src. Ensure both sides use the same URL for perfect sync.
-      remoteRef.current = true
+      beginRemoteGuard()
       try {
         el.playbackRate = rate || 1
         if (Math.abs(el.currentTime - time) > 0.3) el.currentTime = time
@@ -89,7 +96,7 @@ export default function VideoPlayer({ source, poster, className, onError, room }
         })
         else el.pause()
       } finally {
-        setTimeout(() => { remoteRef.current = false }, 0)
+        // guard persists for a short duration
       }
     }
 
