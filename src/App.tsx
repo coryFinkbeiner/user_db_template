@@ -16,6 +16,7 @@ function App() {
   const [name, setName] = useState('')
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [password, setPassword] = useState('')
 
   useEffect(() => {
     const load = async () => {
@@ -59,13 +60,14 @@ function App() {
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name: name || undefined })
+        body: JSON.stringify({ email, name: name || undefined, password })
       })
       const body = await res.json()
       if (!res.ok) throw new Error(body?.error || 'Create failed')
       setUsers(u => [body as User, ...(u || [])])
       setEmail('')
       setName('')
+      setPassword('')
     } catch (e: any) {
       setError(e?.message || 'Create failed')
     } finally {
@@ -114,6 +116,14 @@ function App() {
             placeholder="Name (optional)"
             value={name}
             onChange={(e) => setName(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Password (min 8 chars)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
           />
           <button type="submit" disabled={creating}>{creating ? 'Creating…' : 'Create'}</button>
         </form>
