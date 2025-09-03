@@ -6,7 +6,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': 'http://localhost:5174'
-    }
+      '/api': 'http://localhost:5174',
+      // Proxy Socket.IO WebSocket to backend during dev
+      '/socket.io': {
+        target: 'http://localhost:5174',
+        ws: true,
+      },
+    },
   }
 })

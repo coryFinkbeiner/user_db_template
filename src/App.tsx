@@ -18,17 +18,13 @@ function App() {
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [password, setPassword] = useState('')
-  // In-app MP4 player state
-  const [videoUrl, setVideoUrl] = useState('')
-  const [fileSrc, setFileSrc] = useState<string | null>(null)
+  // In-app MP4 player: fixed, code-defined source (no user input)
+  const [videoUrl] = useState('https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4')
   const [playerError, setPlayerError] = useState<string | null>(null)
+  const [roomInput, setRoomInput] = useState('')
+  const [room, setRoom] = useState<string | null>(null)
 
-  // Revoke object URL when fileSrc changes or on unmount
-  useEffect(() => {
-    return () => {
-      if (fileSrc) URL.revokeObjectURL(fileSrc)
-    }
-  }, [fileSrc])
+  // No file object URLs used when source is code-defined
 
   useEffect(() => {
     const load = async () => {
@@ -142,33 +138,25 @@ function App() {
 
         <div className="player-panel">
           <h2>MP4 Player</h2>
-          <p className="muted">Paste an MP4 URL or pick a local file.</p>
-          <form className="player-form" onSubmit={e => e.preventDefault()}>
+          <p className="muted">Using built-in sample video (flower.mp4).</p>
+          <form className="player-form" onSubmit={(e) => { e.preventDefault(); setRoom(roomInput || null) }}>
             <input
-              type="url"
-              placeholder="https://example.com/video.mp4"
-              value={videoUrl}
-              onChange={(e) => { setVideoUrl(e.target.value); setFileSrc(null); setPlayerError(null) }}
-              style={{ minWidth: 280, flex: 1 }}
+              type="text"
+              placeholder="Room ID (e.g., room-123)"
+              value={roomInput}
+              onChange={(e) => setRoomInput(e.target.value)}
+              style={{ minWidth: 220 }}
             />
-            <input
-              type="file"
-              accept="video/mp4"
-              onChange={(e) => {
-                const f = e.target.files?.[0]
-                if (!f) { setFileSrc(null); return }
-                const url = URL.createObjectURL(f)
-                setFileSrc(url)
-                setVideoUrl('')
-                setPlayerError(null)
-              }}
-            />
+            <button onClick={() => setRoom(roomInput || null)} disabled={!roomInput}>Join Room</button>
+            <button onClick={() => setRoom(null)} disabled={!room}>Leave</button>
           </form>
+          <p className="muted">Open this page in two windows, join the same room, then play/pause/seek to test sync.</p>
           {playerError && <p className="error">{playerError}</p>}
           <div className="player">
             <VideoPlayer
-              source={fileSrc || (videoUrl ? videoUrl : null)}
+              source={videoUrl}
               onError={(msg) => setPlayerError(msg)}
+              room={room}
             />
           </div>
         </div>
