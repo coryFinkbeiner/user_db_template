@@ -71,3 +71,18 @@ body {
   color: #fff;
   cursor: pointer;
 }
+
+.player-panel {
+  margin-top: 24px;
+}
+.player-panel h2 { margin-bottom: 8px; }
+.player-form { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px; }
+.player-form input[type="url"],
+.player-form input[type="file"] {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+.player video { border: 1px solid rgba(255,255,255,0.18); }
