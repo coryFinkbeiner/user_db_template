@@ -22,6 +22,8 @@ function App() {
   const [videoUrl, setVideoUrl] = useState('')
   const [fileSrc, setFileSrc] = useState<string | null>(null)
   const [playerError, setPlayerError] = useState<string | null>(null)
+  const [roomInput, setRoomInput] = useState('')
+  const [room, setRoom] = useState<string | null>(null)
 
   // Revoke object URL when fileSrc changes or on unmount
   useEffect(() => {
@@ -164,11 +166,24 @@ function App() {
               }}
             />
           </form>
+          <form className="player-form" onSubmit={(e) => { e.preventDefault(); setRoom(roomInput || null) }}>
+            <input
+              type="text"
+              placeholder="Room ID (e.g., room-123)"
+              value={roomInput}
+              onChange={(e) => setRoomInput(e.target.value)}
+              style={{ minWidth: 220 }}
+            />
+            <button onClick={() => setRoom(roomInput || null)} disabled={!roomInput}>Join Room</button>
+            <button onClick={() => setRoom(null)} disabled={!room}>Leave</button>
+          </form>
+          <p className="muted">For best sync, all viewers should use the same MP4 URL.</p>
           {playerError && <p className="error">{playerError}</p>}
           <div className="player">
             <VideoPlayer
               source={fileSrc || (videoUrl ? videoUrl : null)}
               onError={(msg) => setPlayerError(msg)}
+              room={room}
             />
           </div>
         </div>

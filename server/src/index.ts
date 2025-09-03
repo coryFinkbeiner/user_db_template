@@ -1,9 +1,16 @@
 import 'dotenv/config'
 import express from 'express'
+import { createServer } from 'http'
+import { Server as SocketIOServer } from 'socket.io'
 import { PrismaClient } from '@prisma/client'
 import * as bcrypt from 'bcryptjs'
 
 const app = express()
+const server = createServer(app)
+const io = new SocketIOServer(server, {
+  // Allow dev from Vite (5173). In prod, same-origin is used.
+  cors: { origin: true, credentials: false },
+})
 const prisma = new PrismaClient()
 
 app.use(express.json())
@@ -51,7 +58,45 @@ app.post('/api/users', async (req, res) => {
   }
 })
 
+// --- Socket.IO: simple room-based sync for watch-together ---
+type RoomPayload = { room: string }
+type PlayPayload = RoomPayload & { time: number; ts?: number }
+type PausePayload = RoomPayload & { time: number; ts?: number }
+type SeekPayload = RoomPayload & { time: number; ts?: number }
+type RatePayload = RoomPayload & { rate: number }
+type StatePayload = RoomPayload & { state: { src?: string | null; time: number; playing: boolean; rate: number } }
+
+io.on('connection', (socket) => {
+  socket.on('join', ({ room }: RoomPayload) => {
+    if (!room) return
+    socket.join(room)
+    // Ask others for their current state to sync the newcomer
+    socket.to(room).emit('request_state')
+  })
+
+  socket.on('play', ({ room, time, ts }: PlayPayload) => {
+    if (!room) return
+    socket.to(room).emit('play', { time, ts: ts ?? Date.now() })
+  })
+  socket.on('pause', ({ room, time, ts }: PausePayload) => {
+    if (!room) return
+    socket.to(room).emit('pause', { time, ts: ts ?? Date.now() })
+  })
+  socket.on('seek', ({ room, time, ts }: SeekPayload) => {
+    if (!room) return
+    socket.to(room).emit('seek', { time, ts: ts ?? Date.now() })
+  })
+  socket.on('rate', ({ room, rate }: RatePayload) => {
+    if (!room) return
+    socket.to(room).emit('rate', { rate })
+  })
+  socket.on('state', ({ room, state }: StatePayload) => {
+    if (!room) return
+    socket.to(room).emit('state', state)
+  })
+})
+
 const port = Number(process.env.PORT || 5174)
-app.listen(port, () => {
-  console.log(`API server listening on http://localhost:${port}`)
+server.listen(port, () => {
+  console.log(`API + WS server listening on http://localhost:${port}`)
 })
