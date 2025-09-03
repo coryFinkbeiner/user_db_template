@@ -55,7 +55,9 @@ export default function VideoPlayer({ source, poster, className, onError, room }
       remoteRef.current = true
       try {
         if (Math.abs(el.currentTime - time) > 0.3) el.currentTime = time
-        await el.play().catch(() => {})
+        await el.play().catch(() => {
+          onError?.('Autoplay prevented. Click the video or unmute, then press play again.')
+        })
       } finally {
         setTimeout(() => { remoteRef.current = false }, 0)
       }
@@ -82,7 +84,9 @@ export default function VideoPlayer({ source, poster, className, onError, room }
       try {
         el.playbackRate = rate || 1
         if (Math.abs(el.currentTime - time) > 0.3) el.currentTime = time
-        if (playing) await el.play().catch(() => {})
+        if (playing) await el.play().catch(() => {
+          onError?.('Autoplay prevented. Click the video or unmute, then press play again.')
+        })
         else el.pause()
       } finally {
         setTimeout(() => { remoteRef.current = false }, 0)
@@ -133,6 +137,7 @@ export default function VideoPlayer({ source, poster, className, onError, room }
       className={className}
       controls
       playsInline
+      muted
       preload="metadata"
       poster={poster}
       src={source}
