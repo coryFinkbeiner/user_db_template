@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import VideoPlayer from './components/VideoPlayer'
 
 type User = {
   id: string
@@ -17,6 +18,17 @@ function App() {
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [password, setPassword] = useState('')
+  // In-app MP4 player state
+  const [videoUrl, setVideoUrl] = useState('')
+  const [fileSrc, setFileSrc] = useState<string | null>(null)
+  const [playerError, setPlayerError] = useState<string | null>(null)
+
+  // Revoke object URL when fileSrc changes or on unmount
+  useEffect(() => {
+    return () => {
+      if (fileSrc) URL.revokeObjectURL(fileSrc)
+    }
+  }, [fileSrc])
 
   useEffect(() => {
     const load = async () => {
@@ -125,8 +137,41 @@ function App() {
             required
             minLength={8}
           />
-          <button type="submit" disabled={creating}>{creating ? 'Creating…' : 'Create'}</button>
+        <button type="submit" disabled={creating}>{creating ? 'Creating…' : 'Create'}</button>
         </form>
+
+        <div className="player-panel">
+          <h2>MP4 Player</h2>
+          <p className="muted">Paste an MP4 URL or pick a local file.</p>
+          <form className="player-form" onSubmit={e => e.preventDefault()}>
+            <input
+              type="url"
+              placeholder="https://example.com/video.mp4"
+              value={videoUrl}
+              onChange={(e) => { setVideoUrl(e.target.value); setFileSrc(null); setPlayerError(null) }}
+              style={{ minWidth: 280, flex: 1 }}
+            />
+            <input
+              type="file"
+              accept="video/mp4"
+              onChange={(e) => {
+                const f = e.target.files?.[0]
+                if (!f) { setFileSrc(null); return }
+                const url = URL.createObjectURL(f)
+                setFileSrc(url)
+                setVideoUrl('')
+                setPlayerError(null)
+              }}
+            />
+          </form>
+          {playerError && <p className="error">{playerError}</p>}
+          <div className="player">
+            <VideoPlayer
+              source={fileSrc || (videoUrl ? videoUrl : null)}
+              onError={(msg) => setPlayerError(msg)}
+            />
+          </div>
+        </div>
       </div>
     </main>
   )
