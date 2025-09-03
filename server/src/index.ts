@@ -6,13 +6,22 @@ const prisma = new PrismaClient()
 
 app.use(express.json())
 
-app.get('/api/health', (_req, res) => {
-  res.json({ ok: true })
+app.get('/api/health', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ ok: true, db: true });
+  } catch (e: any) {
+    res.json({ ok: true, db: false, error: e?.message || 'DB error' });
+  }
 })
 
 app.get('/api/users', async (_req, res) => {
-  const users = await prisma.user.findMany({ orderBy: { createdAt: 'desc' } })
-  res.json(users)
+  try {
+    const users = await prisma.user.findMany({ orderBy: { createdAt: 'desc' } })
+    res.json(users)
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || 'failed to fetch users' })
+  }
 })
 
 app.post('/api/users', async (req, res) => {
@@ -33,4 +42,3 @@ const port = Number(process.env.PORT || 5174)
 app.listen(port, () => {
   console.log(`API server listening on http://localhost:${port}`)
 })
-

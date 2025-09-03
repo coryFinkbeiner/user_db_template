@@ -27,10 +27,43 @@ body {
       #8b00ff 100%);
 }
 
-.rainbow h1 {
-  font-size: 3rem;
-  line-height: 1.1;
-  margin: 0;
+.panel {
+  width: min(720px, 92vw);
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.panel h1 {
+  margin-top: 0;
+}
+
+.chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+.chip.ok { background: #10b981; color: #00190f; }
+.chip.bad { background: #ef4444; color: #190000; }
+.chip.wait { background: #f59e0b; color: #1a1200; }
+
+.muted { opacity: 0.8; }
+.error { color: #ffb4b4; }
+
+.list { text-align: left; }
+.list li { margin: 6px 0; }
+
+.form { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.form input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.08);
   color: #fff;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.35);
+}
+.form button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  cursor: pointer;
 }
