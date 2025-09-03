@@ -17,7 +17,11 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: linear-gradient(135deg,
+  background:
+    /* Darkening overlay */
+    linear-gradient(0deg, rgba(0,0,0,0.82), rgba(0,0,0,0.82)),
+    /* Original rainbow gradient */
+    linear-gradient(135deg,
       #ff0000 0%,
       #ff7f00 16.66%,
       #ffff00 33.33%,
